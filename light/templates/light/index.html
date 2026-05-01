@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Traffic Light</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: monospace;
+      color: #ccc;
+      user-select: none;
+    }
+
+    .housing {
+      background: #111;
+      border: 4px solid #333;
+      border-radius: 20px;
+      padding: 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      box-shadow: 0 0 40px rgba(0,0,0,0.8);
+    }
+
+    .bulb {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      border: 4px solid #222;
+      transition: box-shadow 0.15s ease, background-color 0.15s ease;
+    }
+
+    .bulb.red    { background: #3a0000; }
+    .bulb.yellow { background: #2a2000; }
+    .bulb.green  { background: #002200; }
+
+    .bulb.red.on    { background: #ff2200; box-shadow: 0 0 40px 12px #ff2200, 0 0 80px 20px rgba(255,34,0,0.4); }
+    .bulb.yellow.on { background: #ffcc00; box-shadow: 0 0 40px 12px #ffcc00, 0 0 80px 20px rgba(255,204,0,0.4); }
+    .bulb.green.on  { background: #00ee44; box-shadow: 0 0 40px 12px #00ee44, 0 0 80px 20px rgba(0,238,68,0.4); }
+
+    .controls {
+      margin-top: 28px;
+      text-align: center;
+      font-size: 13px;
+      line-height: 2;
+      color: #555;
+    }
+
+    .controls span { color: #888; }
+
+    .timer-row {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    button {
+      background: #1a1a1a;
+      color: #aaa;
+      border: 1px solid #444;
+      border-radius: 6px;
+      padding: 6px 18px;
+      font-family: monospace;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.1s, color 0.1s;
+    }
+    button:hover { background: #2a2a2a; color: #eee; }
+    button.active { background: #0a2a0a; border-color: #00ee44; color: #00ee44; }
+
+    input[type=number] {
+      background: #111;
+      color: #aaa;
+      border: 1px solid #444;
+      border-radius: 6px;
+      padding: 5px 8px;
+      width: 70px;
+      font-family: monospace;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .state-label {
+      font-size: 20px;
+      font-weight: bold;
+      letter-spacing: 3px;
+      text-align: center;
+      height: 28px;
+      transition: color 0.15s;
+    }
+    .state-label.red    { color: #ff2200; }
+    .state-label.yellow { color: #ffcc00; }
+    .state-label.green  { color: #00ee44; }
+  </style>
+</head>
+<body>
+
+  <div class="housing">
+    <div class="bulb red" id="red"></div>
+    <div class="bulb yellow" id="yellow"></div>
+    <div class="bulb green" id="green"></div>
+  </div>
+
+  <div class="state-label" id="stateLabel">RED</div>
+
+  <div class="controls">
+    <span>SPACE</span> — next state &nbsp;|&nbsp;
+    <span>R</span> red &nbsp;|&nbsp;
+    <span>Y</span> yellow &nbsp;|&nbsp;
+    <span>G</span> green
+  </div>
+
+  <div class="timer-row">
+    <button id="timerBtn" onclick="toggleTimer()">&#9654; auto</button>
+    <input type="number" id="timerInterval" value="2" min="0.5" max="60" step="0.5" title="seconds per state">
+    <span style="font-size:12px;color:#444">sec</span>
+  </div>
+
+<script>
+  const CYCLE = ['red', 'green', 'yellow'];
+  let current = 0;
+  let timerID = null;
+
+  function setState(colorOrIdx) {
+    if (typeof colorOrIdx === 'string') {
+      current = CYCLE.indexOf(colorOrIdx);
+    } else {
+      current = ((colorOrIdx % 3) + 3) % 3;
+    }
+    const name = CYCLE[current];
+    ['red', 'yellow', 'green'].forEach(s => document.getElementById(s).classList.remove('on'));
+    document.getElementById(name).classList.add('on');
+    const label = document.getElementById('stateLabel');
+    label.textContent = name.toUpperCase();
+    label.className = 'state-label ' + name;
+  }
+
+  function nextState() {
+    setState(current + 1);
+  }
+
+  function toggleTimer() {
+    if (timerID) {
+      clearInterval(timerID);
+      timerID = null;
+      document.getElementById('timerBtn').classList.remove('active');
+      document.getElementById('timerBtn').textContent = '▶ auto';
+    } else {
+      const secs = parseFloat(document.getElementById('timerInterval').value) || 2;
+      timerID = setInterval(nextState, secs * 1000);
+      document.getElementById('timerBtn').classList.add('active');
+      document.getElementById('timerBtn').textContent = '⏹ auto';
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    switch (e.key) {
+      case ' ':  e.preventDefault(); nextState(); break;
+      case 'r': case 'R': setState('red'); break;
+      case 'y': case 'Y': setState('yellow'); break;
+      case 'g': case 'G': setState('green'); break;
+    }
+  });
+
+  // Start on red
+  setState(0);
+</script>
+</body>
+</html>
